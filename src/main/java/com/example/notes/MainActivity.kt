@@ -12,7 +12,6 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,6 +23,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
@@ -51,7 +51,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.notes.data.Note
 import com.example.notes.model.AddNoteButton
-import com.example.notes.model.DeleteNoteButton
 import com.example.notes.model.NotesViewModel
 import com.example.notes.ui.theme.NotesTheme
 
@@ -79,51 +78,58 @@ fun NotesApp() {
     var currentState by remember {
         mutableStateOf(1)
     }
-    val viewModel: NotesViewModel = viewModel()
 
     when(currentState) {
         1-> {
-            Scaffold(topBar = {NotesTopAppBar()}) { it ->
-                LazyColumn(contentPadding = it) {
-                    items(viewModel.notes.value) { note ->
-                        NotesItem(
-                            note = note, modifier = Modifier.padding(dimensionResource(R.dimen.padding_small)),
-                            onDeleteClick = { viewModel.deleteNote(note) })
-
-                    }
-                }
-
-            }
+            MainScreen()
             Display1(Forward = {currentState = 2})
-
-
         }
         2-> {
-
             Column(modifier = Modifier, horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center) {
                 Display2(Backward = {currentState = 1})
                 AddNoteButton()
 
             }
+        }
+    }
+}
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MainScreen(modifier: Modifier = Modifier) {
+    val viewModel: NotesViewModel = viewModel()
+    val deleteNote: (Note) -> Unit = { note ->
+        viewModel.deleteNote((note))
+    }
+    Column(modifier = Modifier
+        .padding(16.dp)
+        .fillMaxSize()) {
+        Scaffold(topBar = {NotesTopAppBar()}) { it ->
+            LazyColumn(contentPadding = it) {
+                items(viewModel.notes.value) { note ->
+                    NotesItem(
+                        note = note, modifier = Modifier.padding(dimensionResource(R.dimen.padding_small)),
+                        onDeleteNote = deleteNote
+                    )
 
+                }
+            }
 
         }
+
     }
 }
 
 @Composable
 fun NotesItem(
     note: Note,
-    onDeleteClick: () -> Unit,
+    onDeleteNote: (Note) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember {
         mutableStateOf(false)
     }
-
-
     val color by animateColorAsState(targetValue = if (expanded) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.primaryContainer)
 
     Card(modifier = modifier) {
@@ -140,7 +146,6 @@ fun NotesItem(
                 .padding(dimensionResource(R.dimen.padding_small))) {
                 NoteTitle(note.title)
                 Spacer(modifier = Modifier.weight(0.5f))
-
                 NotesItemButton(expanded = expanded, onClick = { expanded = !expanded })
             }
             if(expanded) {
@@ -152,10 +157,14 @@ fun NotesItem(
                 ))
             }
             Spacer(modifier = Modifier.height(2.dp))
-            DeleteNoteButton(onDeleteClick = onDeleteClick)
+            IconButton(
+                onClick = { onDeleteNote(note) }
+
+            ) {
+                Icon(Icons.Default.Delete, contentDescription = "Удалить")
+            }
 
 
-            
         }
 
     }
@@ -191,6 +200,7 @@ fun NoteText(text: String, modifier: Modifier = Modifier) {
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotesTopAppBar(modifier: Modifier = Modifier) {
     CenterAlignedTopAppBar(title = {

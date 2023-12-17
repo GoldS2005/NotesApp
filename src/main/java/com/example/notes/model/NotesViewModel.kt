@@ -81,13 +81,7 @@ fun AddNoteButton() {
     }
 }
 
-@Composable
-fun DeleteNoteButton(onDeleteClick: () -> Unit) {
-    IconButton(onClick = onDeleteClick) {
-        Icon(imageVector = Icons.Filled.Delete, tint = MaterialTheme.colorScheme.background,
-                    contentDescription = null)
-        }
-}
+
 
 
 
