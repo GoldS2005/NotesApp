@@ -3,13 +3,17 @@
 package com.example.notes.model
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -48,38 +52,55 @@ class NotesViewModel: ViewModel() {
 
 
 @Composable
-fun AddNoteButton() {
+fun AddNoteScreen(
+    viewModel: NotesViewModel,
+    onBackWardClick: () -> Unit,
+    addNote: (Note) -> Unit) {
     val titleState = remember { mutableStateOf("") }
     val textState = remember { mutableStateOf("") }
-
     val localFocusManager = LocalFocusManager.current
 
-    val viewModel: NotesViewModel = viewModel()
+    Column {
+        Row(
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            IconButton(onClick = onBackWardClick) {
+                Icon(
+                    imageVector = Icons.Filled.ArrowBack, contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primaryContainer
+                )
 
-    Column(modifier = Modifier.fillMaxSize()) {
+            }
+
+        }
         TextField(
             value = titleState.value,
-            onValueChange = {titleState.value = it},
-            label = {Text("Title")}
+            onValueChange = { titleState.value = it },
+            label = { Text("Title") }
         )
         TextField(
             value = textState.value,
-            onValueChange = {textState.value = it},
-            label = {Text("Text")}
+            onValueChange = { textState.value = it },
+            label = { Text("Text") }
         )
+        Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = {
-            viewModel.addNote(Note(titleState.value, textState.value))
+            val newNote = Note(titleState.value, textState.value)
+            addNote(newNote)
             titleState.value = ""
             textState.value = ""
-            localFocusManager.clearFocus()
-        }) {
-            Text("Add Note", textAlign = TextAlign.Center, modifier = Modifier.width(75.dp))
+            localFocusManager.clearFocus()}
+        ) {
+
+            Text("Add Note")
 
         }
 
-
     }
 }
+
 
 
 

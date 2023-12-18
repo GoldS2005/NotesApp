@@ -49,8 +49,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHost
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.notes.data.Note
-import com.example.notes.model.AddNoteButton
+
+import com.example.notes.model.AddNoteScreen
 import com.example.notes.model.NotesViewModel
 import com.example.notes.ui.theme.NotesTheme
 
@@ -75,33 +80,38 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun NotesApp() {
-    var currentState by remember {
-        mutableStateOf(1)
-    }
+    val navController = rememberNavController()
+    val viewModel: NotesViewModel = viewModel()
 
-    when(currentState) {
-        1-> {
-            MainScreen()
-            Display1(Forward = {currentState = 2})
+    NavHost(navController = navController, startDestination = "main_screen") {
+        composable("main_screen") {
+            MainScreen(
+                viewModel = viewModel,
+                onAddNoteClick = { navController.navigate("add_note_screen")},
+                deleteNote = {note -> viewModel.deleteNote(note)},
+
+
+            )
         }
-        2-> {
-            Column(modifier = Modifier, horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center) {
-                Display2(Backward = {currentState = 1})
-                AddNoteButton()
+        composable("add_note_screen") {
+            AddNoteScreen(
+                viewModel = viewModel,
+                onBackWardClick = {navController.popBackStack()},
+                addNote = {note -> viewModel.addNote(note) }
 
-            }
+            )
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(modifier: Modifier = Modifier) {
-    val viewModel: NotesViewModel = viewModel()
-    val deleteNote: (Note) -> Unit = { note ->
-        viewModel.deleteNote((note))
-    }
+fun MainScreen(
+    viewModel: NotesViewModel,
+    modifier: Modifier = Modifier,
+    onAddNoteClick: () -> Unit,
+    deleteNote: (Note) -> Unit) {
+
     Column(modifier = Modifier
         .padding(16.dp)
         .fillMaxSize()) {
@@ -118,6 +128,14 @@ fun MainScreen(modifier: Modifier = Modifier) {
 
         }
 
+    }
+    Row(verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.Center,
+        modifier = Modifier.fillMaxWidth()) {
+        Button(onClick = onAddNoteClick) {
+            Text(text = "Add", textAlign = TextAlign.Center, modifier = Modifier.width(200.dp))
+
+        }
     }
 }
 
@@ -211,38 +229,6 @@ fun NotesTopAppBar(modifier: Modifier = Modifier) {
     }  }, modifier = modifier
     )
 }
-
-@Composable
-fun Display1 (Forward: () -> Unit) {
-    Row(verticalAlignment = Alignment.Bottom,
-        horizontalArrangement = Arrangement.Center,
-        modifier = Modifier.fillMaxWidth()) {
-        Button(onClick = Forward) {
-            Text(text = "Add", textAlign = TextAlign.Center, modifier = Modifier.width(200.dp))
-
-        }
-    }
-
-}
-
-@Composable
-fun Display2 (Backward: () -> Unit) {
-    Row(verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.Start,
-        modifier = Modifier.fillMaxWidth()) {
-        IconButton(onClick =  Backward ) {
-            Icon(imageVector =  Icons.Filled.ArrowBack, contentDescription = null,
-                tint = MaterialTheme.colorScheme.primaryContainer)
-
-        }
-
-        }
-
-    }
-
-
-
-
 
 @Preview(showBackground = true)
 @Composable
